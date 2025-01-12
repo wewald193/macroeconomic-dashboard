@@ -4,7 +4,6 @@ seaborn
 openai
 python-dotenv
 streamlit
-os
 requests
 datetime
 altair
