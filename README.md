@@ -93,7 +93,7 @@ The dashboard includes visualizations for key macroeconomic indicators:
 ## LLM Integration
 
 - **Model**: Uses OpenAI's GPT-4o for generating insights and answering questions
-- **Cost Consideration**: Implements efficient querying and filtering to optimize API usage costs - costs about $.04 per use
+- **Cost Consideration**: Implements efficient querying and filtering to optimize API usage costs - costs about $0.04 per use
 
 ## Future Improvements
 
