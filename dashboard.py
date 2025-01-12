@@ -250,7 +250,7 @@ with tab4:
     if user_question and all_data:
         all_data_snippet = "\n".join([data.to_csv(index=True) for data in all_data.values()])
         prompt = (
-            f"Answer the following question using the provided macroeconomic data for the range {start_date} to {end_date} in 8 sentences or less:\n"
+            f"Answer the following question using the provided macroeconomic data for the range {start_date} to {end_date} in 8 sentences or less using the provided dataset:\n"
             f"{user_question}\n\nData:\n{all_data_snippet}"
         )
         try:
