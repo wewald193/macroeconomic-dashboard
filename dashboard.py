@@ -244,32 +244,95 @@ with tab4:
     st.subheader("Summary")
     st.write(st.session_state["summary"])
 
+    # Tab 4: AI-Generated Insights
+with tab4:
+    st.subheader("AI-Generated Insights")
+    st.write("The insights below are generated using only the data from the selected date range.")
+
+    # Load all indicators
+    all_data = {}
+    for name, filename in indicators.items():
+        file_path = os.path.join(data_dir, filename)
+        if os.path.exists(file_path):
+            data = pd.read_csv(file_path, parse_dates=["date"])
+            data.set_index("date", inplace=True)
+            # Always use quarterly data for the AI insights
+            filtered_data = data.loc[start_date:end_date].resample("Q").mean()  # Quarterly
+            all_data[name] = filtered_data
+
+    # Generate concise summary
+    def generate_summary(all_data):
+        summary_texts = []
+        for name, data in all_data.items():
+            if not data.empty:
+                data_snippet = data.to_csv(index=True)
+                prompt = (
+                    f"Provide a concise analysis of trends in {name} for the period {start_date} to {end_date}, "
+                    f"highlighting major trends, key events, and recent changes. Data:\n{data_snippet}"
+                )
+
+                try:
+                    response = client.chat.completions.create(
+                        model="gpt-4o",
+                        messages=[
+                            {"role": "system", "content": "You are an economic analyst providing concise summaries of data trends."},
+                            {"role": "user", "content": prompt},
+                        ],
+                        temperature=0.7,
+                        max_tokens=250,
+                    )
+                    summary_texts.append(f"**{name}:** {response.choices[0].message.content.strip()}")
+                except Exception as e:
+                    summary_texts.append(f"**{name}:** An error occurred while generating the summary: {str(e)}")
+        return "\n\n".join(summary_texts)
+
+    # Generate Summary
+    st.subheader("Summary")
+    if all_data:
+        summary = generate_summary(all_data)
+        st.write(summary)
+    else:
+        st.error("No data available in the selected time range for generating a summary.")
+
     # Q&A Section
     st.subheader("Ask a Question")
-    user_question = st.text_input("Ask a question about the macroeconomic data (in the select date range):")
-    if user_question and all_data:
-        all_data_snippet = "\n".join([data.to_csv(index=True) for data in all_data.values()])
-        prompt = (
-            f"Answer the following question using the provided macroeconomic data for the range {start_date} to {end_date} in 8 sentences or less using the provided dataset:\n"
-            f"{user_question}\n\nData:\n{all_data_snippet}"
-        )
-        try:
-            response = client.chat.completions.create(
-                model="gpt-4o",
-                messages=[
-                    {"role": "system", "content": "You are an economic analyst answering questions based on provided data. Provide clear, well-formatted, and concise responses."},
-                    {"role": "user", "content": prompt},
-                ],
-                temperature=0.7,
-                max_tokens=300,
+    if "qa_response" not in st.session_state:
+        st.session_state.qa_response = None  # Store the last response
+    if "qa_question" not in st.session_state:
+        st.session_state.qa_question = ""  # Store the last question
+
+    # Input for question
+    user_question = st.text_input(
+        "Ask a question about the macroeconomic data (in the selected date range):",
+        key="user_question_input"
+    )
+
+    # Handle question submission
+    if st.button("Submit"):
+        if user_question.strip() != "":
+            st.session_state.qa_question = user_question  # Update the session state with the new question
+            # Send the new question to GPT-4o
+            all_data_snippet = "\n".join([data.to_csv(index=True) for data in all_data.values()])
+            prompt = (
+                f"Answer the following question using the provided macroeconomic data for the range {start_date} to {end_date} in 8 or less sentences:\n"
+                f"{user_question}\n\nData:\n{all_data_snippet}"
             )
-            # Post-process response to clean formatting
-            answer = response.choices[0].message.content.strip()
-            cleaned_answer = (
-                answer.replace("  ", " ")  # Replace double spaces with single spaces
-                .replace("\n\n", "\n")     # Replace double newlines with single newlines
-                .replace(" ,", ",")        # Fix misplaced commas
-            )
-            st.write(cleaned_answer)
-        except Exception as e:
-            st.error(f"An error occurred while answering the question: {str(e)}")
+            try:
+                response = client.chat.completions.create(
+                    model="gpt-4o",
+                    messages=[
+                        {"role": "system", "content": "You are an economic analyst answering questions based on provided data."},
+                        {"role": "user", "content": prompt},
+                    ],
+                    temperature=0.7,
+                    max_tokens=300,
+                )
+                st.session_state.qa_response = response.choices[0].message.content.strip()  # Store the response
+            except Exception as e:
+                st.session_state.qa_response = f"An error occurred while answering the question: {str(e)}"
+        else:
+            st.error("Please enter a valid question.")
+
+    # Display the latest response
+    if st.session_state.qa_response:
+        st.write(st.session_state.qa_response)
