@@ -40,7 +40,7 @@ start_date, end_date = st.sidebar.slider(
 # Tabs for better organization
 tab1, tab2, tab3, tab4 = st.tabs(["📈 Time Series Visualization", "📊 Key Statistics", "📉 Additional Visualizations", "💡 AI-Generated Insights"])
 
-#Tab 1: Time Series Visualization
+# Tab 1: Time Series Visualization
 with tab1:
     st.subheader("Time Series Visualization")
     selected_indicator = st.selectbox("Choose an indicator to display:", list(indicators.keys()))
@@ -55,10 +55,16 @@ with tab1:
             # Filter data based on the selected date range
             filtered_data = data.loc[start_date:end_date]
 
-            # Display the filtered data as a line chart
-            st.line_chart(filtered_data["value"], use_container_width=True)
+            # Check if filtered data is empty
+            if filtered_data.empty:
+                st.warning(f"No data available for {selected_indicator} in the selected date range ({start_date} to {end_date}).")
+            else:
+                # Display the filtered data as a line chart
+                st.write(f"### {selected_indicator} Over Time")
+                st.line_chart(filtered_data["value"], use_container_width=True)
         else:
             st.error(f"Data file not found for {selected_indicator}: {file_path}")
+
 
 # Tab 2: Key Statistics
 with tab2:
@@ -102,7 +108,9 @@ with tab3:
     merged_file_path = os.path.join(data_dir, "merged_indicators.csv")
     if os.path.exists(merged_file_path):
         merged_data = pd.read_csv(merged_file_path, parse_dates=["date"])
-        filtered_merged_data = merged_data[(merged_data["date"] >= pd.to_datetime(start_date)) & (merged_data["date"] <= pd.to_datetime(end_date))]
+        filtered_merged_data = merged_data[
+            (merged_data["date"] >= pd.to_datetime(start_date)) & (merged_data["date"] <= pd.to_datetime(end_date))
+        ]
         corr_matrix = filtered_merged_data.corr()
 
         # Plot heatmap using Seaborn
@@ -117,6 +125,9 @@ with tab3:
     indicator_1 = st.selectbox("Select the first indicator:", list(indicators.keys()), index=0, key="indicator_1")
     indicator_2 = st.selectbox("Select the second indicator:", list(indicators.keys()), index=1, key="indicator_2")
 
+    # Option to normalize data
+    normalize_data = st.checkbox("Normalize Data", value=False, key="normalize_data")
+
     if indicator_1 != indicator_2:
         file_path_1 = os.path.join(data_dir, indicators[indicator_1])
         file_path_2 = os.path.join(data_dir, indicators[indicator_2])
@@ -125,25 +136,53 @@ with tab3:
             data_1 = pd.read_csv(file_path_1, parse_dates=["date"])
             data_2 = pd.read_csv(file_path_2, parse_dates=["date"])
 
-            # Merge the two dataframes on the date column
-            merged_comparison = pd.merge(data_1, data_2, on="date", suffixes=(f" ({indicator_1})", f" ({indicator_2})"))
-            merged_filtered = merged_comparison[
-                (merged_comparison["date"] >= str(start_date)) & (merged_comparison["date"] <= str(end_date))
+            # Filter data for the selected date range
+            filtered_data_1 = data_1[
+                (data_1["date"] >= str(start_date)) & (data_1["date"] <= str(end_date))
+            ]
+            filtered_data_2 = data_2[
+                (data_2["date"] >= str(start_date)) & (data_2["date"] <= str(end_date))
             ]
 
-            # Plot the comparison
-            st.write(f"### Comparison of {indicator_1} and {indicator_2}")
-            fig, ax = plt.subplots(figsize=(10, 6))
-            ax.plot(pd.to_datetime(merged_filtered["date"]), merged_filtered[f"value ({indicator_1})"], label=indicator_1)
-            ax.plot(pd.to_datetime(merged_filtered["date"]), merged_filtered[f"value ({indicator_2})"], label=indicator_2)
-            ax.set_xlabel("Date")
-            ax.set_ylabel("Value")
-            ax.set_title(f"{indicator_1} vs {indicator_2}")
-            ax.legend()
-            plt.xticks(rotation=45)
-            st.pyplot(fig)
+            # Check if filtered data is empty for either indicator
+            if filtered_data_1.empty and filtered_data_2.empty:
+                st.warning(
+                    f"No data available for both {indicator_1} and {indicator_2} in the selected date range ({start_date} to {end_date})."
+                )
+            elif filtered_data_1.empty:
+                st.warning(f"No data available for {indicator_1} in the selected date range ({start_date} to {end_date}).")
+            elif filtered_data_2.empty:
+                st.warning(f"No data available for {indicator_2} in the selected date range ({start_date} to {end_date}).")
+            else:
+                # Merge the two filtered dataframes on the date column
+                merged_comparison = pd.merge(
+                    filtered_data_1, filtered_data_2, on="date", suffixes=(f" ({indicator_1})", f" ({indicator_2})")
+                )
+
+                # Normalize data if the checkbox is selected
+                if normalize_data:
+                    merged_comparison[f"value ({indicator_1})"] = (
+                        merged_comparison[f"value ({indicator_1})"] - merged_comparison[f"value ({indicator_1})"].mean()
+                    ) / merged_comparison[f"value ({indicator_1})"].std()
+                    merged_comparison[f"value ({indicator_2})"] = (
+                        merged_comparison[f"value ({indicator_2})"] - merged_comparison[f"value ({indicator_2})"].mean()
+                    ) / merged_comparison[f"value ({indicator_2})"].std()
+
+                # Plot the comparison
+                st.write(f"### Comparison of {indicator_1} and {indicator_2}")
+                fig, ax = plt.subplots(figsize=(10, 6))
+                ax.plot(pd.to_datetime(merged_comparison["date"]), merged_comparison[f"value ({indicator_1})"], label=indicator_1)
+                ax.plot(pd.to_datetime(merged_comparison["date"]), merged_comparison[f"value ({indicator_2})"], label=indicator_2)
+                ax.set_xlabel("Date")
+                ax.set_ylabel("Value (Normalized)" if normalize_data else "Value")
+                ax.set_title(f"{indicator_1} vs {indicator_2}")
+                ax.legend()
+                plt.xticks(rotation=45)
+                st.pyplot(fig)
         else:
             st.error("One or both of the selected data files are missing.")
+
+
 
 # Tab 4: AI-Generated Insights
 with tab4:
