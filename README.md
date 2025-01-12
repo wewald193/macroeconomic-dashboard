@@ -9,7 +9,7 @@ A Python-based interactive dashboard for visualizing and analyzing key macroecon
 - **Correlation Heatmap**: Visual representation of correlations between economic indicators
 - **Side-by-Side Comparison**: Compare trends between any two indicators (which can be normalized)
 - **AI-Generated Insights**:
-  - Trend summaries powered by OpenAI
+  - Trend summaries powered by OpenAI's GPT-4o
   - Context-aware Q&A functionality
 - **Dynamic Filtering**: Customizable date ranges for tailored analysis
 
