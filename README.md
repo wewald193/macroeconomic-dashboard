@@ -9,7 +9,7 @@ A Python-based interactive dashboard for visualizing and analyzing key macroecon
 - **Correlation Heatmap**: Visual representation of correlations between economic indicators
 - **Side-by-Side Comparison**: Compare trends between any two indicators
 - **AI-Generated Insights**:
-  - Trend summaries powered by OpenAI
+  - Trend summaries powered by OpenAI's GPT-4o
   - Context-aware Q&A functionality
 - **Dynamic Filtering**: Customizable date ranges for tailored analysis
 
@@ -103,8 +103,8 @@ The dashboard includes visualizations for key macroeconomic indicators:
 
 ## LLM Integration
 
-- **Model**: Uses OpenAI's GPT-4 for generating insights and answering questions
-- **Cost Consideration**: Implements efficient querying and filtering to optimize API usage costs
+- **Model**: Uses OpenAI's GPT-4o for generating insights and answering questions
+- **Cost Consideration**: Implements efficient querying and filtering to optimize API usage costs - costs about $.04 per use
 
 ## Future Improvements
 
