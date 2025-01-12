@@ -7,7 +7,7 @@ A Python-based interactive dashboard for visualizing and analyzing key macroecon
 - **Time Series Visualization**: Interactive line charts with labeled axes and hover functionality
 - **Key Statistics**: Display of recent, maximum, and minimum values for all indicators
 - **Correlation Heatmap**: Visual representation of correlations between economic indicators
-- **Side-by-Side Comparison**: Compare trends between any two indicators (which can be normalized)
+- **Side-by-Side Comparison**: Compare trends between any two indicators
 - **AI-Generated Insights**:
   - Trend summaries powered by OpenAI
   - Context-aware Q&A functionality
@@ -57,13 +57,24 @@ macroeconomic-dashboard/
    pip install -r requirements.txt
    ```
 
-3. **Configure Environment Variables**
+3. **API Setup**
 
-   Create a `.env` file in the root directory with your API keys:
+   To run the dashboard, you need to obtain API keys for the required services:
+
+   **Financial Modeling Prep API Key**
+   * Visit Financial Modeling Prep and sign up for an account.
+   * Once logged in, navigate to the API section and generate your API key.
+
+   **OpenAI API Key**
+   * Visit OpenAI and create an account (if you don't already have one).
+   * Go to the API Keys section in your account settings to generate a new API key.
+
+   After obtaining your API keys, create a `.env` file in the root directory of the project and add the following:
    ```plaintext
    FMP_API_KEY=your_fmp_api_key
    OPENAI_API_KEY=your_openai_api_key
    ```
+   Replace `your_fmp_api_key` and `your_openai_api_key` with your actual API keys.
 
 4. **Prepare the Data**
    ```bash
@@ -92,8 +103,8 @@ The dashboard includes visualizations for key macroeconomic indicators:
 
 ## LLM Integration
 
-- **Model**: Uses OpenAI's GPT-4o for generating insights and answering questions
-- **Cost Consideration**: Implements efficient querying and filtering to optimize API usage costs - costs about $.04 per use
+- **Model**: Uses OpenAI's GPT-4 for generating insights and answering questions
+- **Cost Consideration**: Implements efficient querying and filtering to optimize API usage costs
 
 ## Future Improvements
 
@@ -105,7 +116,3 @@ The dashboard includes visualizations for key macroeconomic indicators:
 ## Contributing
 
 Feel free to open issues or submit pull requests to help improve the dashboard.
-
-## License
-
-[Add your chosen license here]
