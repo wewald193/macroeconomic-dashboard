@@ -250,19 +250,26 @@ with tab4:
     if user_question and all_data:
         all_data_snippet = "\n".join([data.to_csv(index=True) for data in all_data.values()])
         prompt = (
-            f"Answer the following question using the provided macroeconomic data for the range {start_date} to {end_date}:\n"
+            f"Answer the following question using the provided macroeconomic data for the range {start_date} to {end_date} in 8 sentences or less:\n"
             f"{user_question}\n\nData:\n{all_data_snippet}"
         )
         try:
             response = client.chat.completions.create(
                 model="gpt-4o",
                 messages=[
-                    {"role": "system", "content": "You are an economic analyst answering questions based on provided data (8 sentences max)."},
+                    {"role": "system", "content": "You are an economic analyst answering questions based on provided data. Provide clear, well-formatted, and concise responses."},
                     {"role": "user", "content": prompt},
                 ],
                 temperature=0.7,
                 max_tokens=300,
             )
-            st.write(response.choices[0].message.content.strip())
+            # Post-process response to clean formatting
+            answer = response.choices[0].message.content.strip()
+            cleaned_answer = (
+                answer.replace("  ", " ")  # Replace double spaces with single spaces
+                .replace("\n\n", "\n")     # Replace double newlines with single newlines
+                .replace(" ,", ",")        # Fix misplaced commas
+            )
+            st.write(cleaned_answer)
         except Exception as e:
             st.error(f"An error occurred while answering the question: {str(e)}")
